@@ -20,6 +20,27 @@ This tool orchestrates Metasploit modules via RPC to perform authorized security
 - **Multiple report formats**: JSON, YAML, text with AI insights
 - **Verbose output**: Detailed execution logging and progress tracking
 
+## Installation
+
+### Quick Install (Kali Linux / Linux)
+
+```bash
+# Clone the repository
+git clone https://github.com/hamzazakakhan/msf-aux-auditor.git
+cd msf-aux-auditor
+
+# Install as a command
+pip install -e .
+```
+
+After installation, use the commands:
+```bash
+msf-aux-auditor --help
+msf-auditor --help  # shorter alias
+```
+
+**See [INSTALL.md](INSTALL.md) for detailed installation instructions.**
+
 ## Prerequisites
 
 - Python 3.10+
@@ -88,30 +109,32 @@ Or add to `aux_modules.json`:
 
 ```bash
 # AI selects and runs appropriate modules
-python -m msf_aux_auditor ai-scan <target>
+msf-aux-auditor ai-scan <target>
 
 # AI scan with high priority modules only
-python -m msf_aux_auditor ai-scan https://example.com --priority high
+msf-aux-auditor ai-scan https://example.com --priority high
 
 # Auto-run without confirmation
-python -m msf_aux_auditor ai-scan 192.168.1.100 --auto-run
+msf-aux-auditor ai-scan 192.168.1.100 --auto-run
 
 # Save results with AI analysis
-python -m msf_aux_auditor ai-scan example.com --output report.json
+msf-aux-auditor ai-scan example.com --output report.json
 ```
 
 **Manual Scanning:**
 
 ```bash
 # Scan with configured modules
-python -m msf_aux_auditor scan <target_ip>
+msf-aux-auditor scan <target_ip>
 
 # Scan with specific module
-python -m msf_aux_auditor scan <target_ip> --module auxiliary/scanner/portscan/tcp
+msf-aux-auditor scan <target_ip> --module auxiliary/scanner/portscan/tcp
 
 # Save results
-python -m msf_aux_auditor scan <target_ip> --output results.json
+msf-aux-auditor scan <target_ip> --output results.json
 ```
+
+*Note: If not installed, use `python -m msf_aux_auditor` instead of `msf-aux-auditor`*
 
 ## Configuration
 
@@ -119,10 +142,7 @@ Edit `aux_modules.json`:
 
 ```json
 {
-  "allowed_modules": [
-    "auxiliary/scanner/portscan/tcp",
-    "auxiliary/scanner/http/http_version"
-  ],
+  "allowed_modules": [],
   "msf_config": {
     "host": "127.0.0.1",
     "port": 55553,
@@ -140,12 +160,16 @@ Edit `aux_modules.json`:
 }
 ```
 
-### AI Configuration Options
+### Configuration Options
 
+**AI Config:**
 - **provider**: `"openai"` or `"anthropic"`
 - **api_key**: Your API key (or use environment variables)
 - **model**: Model to use (defaults: `gpt-4o` for OpenAI, `claude-3-5-sonnet-20241022` for Anthropic)
 - **enabled**: Enable AI analysis of scan results
+
+**Module Config:**
+- **allowed_modules**: Leave empty `[]` for AI auto-selection, or add specific modules for manual `scan` command
 
 ## Features
 

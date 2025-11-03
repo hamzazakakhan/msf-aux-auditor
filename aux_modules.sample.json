@@ -1,12 +1,6 @@
 {
-  "note": "Example configuration file for msf-aux-auditor with AI features",
-  "allowed_modules": [
-    "auxiliary/scanner/portscan/tcp",
-    "auxiliary/scanner/http/http_version",
-    "auxiliary/scanner/ssh/ssh_version",
-    "auxiliary/scanner/ftp/ftp_version",
-    "auxiliary/scanner/smb/smb_version"
-  ],
+  "note": "Configuration file for msf-aux-auditor. AI selects modules automatically for ai-scan command.",
+  "allowed_modules": [],
   "msf_config": {
     "host": "127.0.0.1",
     "port": 55553,

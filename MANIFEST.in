@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include requirements.txt
+include AI_FEATURES.md
+include aux_modules.sample.json
+recursive-include src *.py
+global-exclude __pycache__
+global-exclude *.py[co]

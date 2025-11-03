@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "msf-aux-auditor"
+version = "1.0.0"
+description = "AI-powered Metasploit module selector and auditor for authorized security testing"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Hamza Zaka Khan", email = "your.email@example.com"}
+]
+keywords = ["metasploit", "security", "penetration-testing", "ai", "vulnerability-scanner"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "Topic :: Security",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "typer>=0.12",
+    "rich>=13.7",
+    "pydantic>=2.8",
+    "pymetasploit3>=1.0.0",
+    "PyYAML>=6.0",
+    "openai>=1.0.0",
+    "anthropic>=0.18.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/hamzazakakhan/msf-aux-auditor"
+Repository = "https://github.com/hamzazakakhan/msf-aux-auditor"
+Issues = "https://github.com/hamzazakakhan/msf-aux-auditor/issues"
+
+[project.scripts]
+msf-aux-auditor = "msf_aux_auditor.cli:main"
+msf-auditor = "msf_aux_auditor.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["msf_aux_auditor*"]
+
+[tool.setuptools.package-data]
+msf_aux_auditor = ["py.typed"]
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
