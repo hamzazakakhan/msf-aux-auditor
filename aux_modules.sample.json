@@ -1,5 +1,5 @@
 {
-  "note": "Example configuration file for msf-aux-auditor",
+  "note": "Example configuration file for msf-aux-auditor with AI features",
   "allowed_modules": [
     "auxiliary/scanner/portscan/tcp",
     "auxiliary/scanner/http/http_version",
@@ -13,6 +13,12 @@
     "username": "msf",
     "password": "your_password_here",
     "ssl": false
+  },
+  "ai_config": {
+    "enabled": true,
+    "provider": "openai",
+    "api_key": "",
+    "model": "gpt-4o"
   },
   "timeout": 300
 }

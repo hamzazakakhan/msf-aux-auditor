@@ -9,8 +9,11 @@ from rich.console import Console
 from rich.panel import Panel
 
 from . import __version__
+from .ai_analyzer import AIAnalyzer
+from .ai_module_selector import AIModuleSelector
 from .config import load_config
 from .msf_client import MsfAuxiliaryRunner
+from .msf_runner import UniversalMsfRunner
 from .reporter import ScanReporter
 
 app = typer.Typer(add_completion=False, help="Non-operational scaffold for authorized auditing workflows.")
@@ -110,6 +113,131 @@ def scan(
                 reporter.save_text(output)
         
         console.print("\n[green]✓[/green] Scan completed")
+        
+    except KeyboardInterrupt:
+        console.print("\n[yellow]![/yellow] Scan interrupted by user")
+        raise typer.Exit(code=130)
+    except Exception as e:
+        console.print(f"\n[red]✗[/red] Error: {e}")
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def ai_scan(
+    target: str = typer.Argument(..., help="Target (URL, IP, hostname)"),
+    config: Path = typer.Option("aux_modules.json", "--config", "-c", help="Configuration file path"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output report file"),
+    priority: str = typer.Option("high", "--priority", "-p", help="Minimum priority (high/medium/low)"),
+    auto_run: bool = typer.Option(False, "--auto-run", "-a", help="Automatically run selected modules"),
+) -> None:
+    """AI-powered module selection and scanning.
+    
+    The AI analyzes the target and automatically selects appropriate
+    Metasploit modules (auxiliaries, exploits, payloads, etc.) to run.
+    """
+    try:
+        # Load configuration
+        if not config.exists():
+            console.print(f"[red]✗[/red] Configuration file not found: {config}")
+            raise typer.Exit(code=1)
+        
+        cfg = load_config(config)
+        
+        # Check if AI is configured
+        if not cfg.ai_config.enabled and not cfg.ai_config.api_key:
+            console.print("[yellow]⚠[/yellow] AI not configured. Set ai_config in your config file or use environment variables.")
+            console.print("\nRequired: OPENAI_API_KEY or ANTHROPIC_API_KEY")
+            raise typer.Exit(code=1)
+        
+        # Initialize AI module selector
+        selector = AIModuleSelector(
+            provider=cfg.ai_config.provider,
+            api_key=cfg.ai_config.api_key if cfg.ai_config.api_key else None,
+            model=cfg.ai_config.model if cfg.ai_config.model else None,
+        )
+        
+        # Select modules using AI
+        selection = selector.select_modules(target, verbose=True)
+        
+        if "error" in selection:
+            console.print(f"[red]✗[/red] Module selection failed")
+            raise typer.Exit(code=1)
+        
+        # Filter by priority
+        if priority in ["high", "medium", "low"]:
+            selection = selector.filter_by_priority(selection, priority)  # type: ignore
+        
+        # Build module list for execution
+        all_modules = []
+        if "modules" in selection:
+            for module_type in ["auxiliary", "exploit", "payload", "encoder", "nop", "post", "evasion"]:
+                for mod in selection["modules"].get(module_type, []):
+                    all_modules.append({
+                        "module_type": module_type,
+                        "module": mod.get("module"),
+                        "options": mod.get("options", {}),
+                        "priority": mod.get("priority", "low"),
+                    })
+        
+        if not all_modules:
+            console.print("[yellow]![/yellow] No modules selected")
+            raise typer.Exit(code=0)
+        
+        # Ask user if they want to run the modules
+        if not auto_run:
+            console.print(f"\n[bold]Run {len(all_modules)} selected modules against {target}?[/bold]")
+            response = typer.confirm("Continue")
+            if not response:
+                console.print("[yellow]Scan cancelled[/yellow]")
+                raise typer.Exit(code=0)
+        
+        # Initialize MSF runner and reporter
+        runner = UniversalMsfRunner(cfg.msf_config, verbose=True)
+        reporter = ScanReporter()
+        
+        try:
+            # Connect to Metasploit
+            runner.connect()
+            
+            # Run modules
+            results = runner.run_module_sequence(
+                modules=all_modules,
+                target=target,
+                timeout=cfg.timeout,
+            )
+            
+            # Add results to reporter
+            for result in results:
+                reporter.add_result(result)
+            
+        finally:
+            runner.disconnect()
+        
+        # Run AI analysis on results if configured
+        if cfg.ai_config.enabled:
+            console.print("\n[bold blue]Running AI analysis on results...[/bold blue]")
+            analyzer = AIAnalyzer(
+                provider=cfg.ai_config.provider,
+                api_key=cfg.ai_config.api_key if cfg.ai_config.api_key else None,
+            )
+            analysis = analyzer.analyze_results(reporter.results)
+            reporter.ai_analysis = analysis  # type: ignore
+        
+        # Display results
+        console.print("\n")
+        reporter.print_summary()
+        
+        # Save report if requested
+        if output:
+            ext = output.suffix.lower()
+            if ext == ".json":
+                reporter.save_json(output)
+            elif ext in [".yaml", ".yml"]:
+                reporter.save_yaml(output)
+            else:
+                reporter.save_text(output)
+        
+        console.print("\n[green]✓[/green] AI-powered scan completed")
         
     except KeyboardInterrupt:
         console.print("\n[yellow]![/yellow] Scan interrupted by user")

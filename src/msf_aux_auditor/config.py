@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
+from typing import Literal
 
 
 class MsfConfig(BaseModel):
@@ -19,11 +20,21 @@ class MsfConfig(BaseModel):
     ssl: bool = Field(default=False, description="Use SSL for RPC connection")
 
 
+class AIConfig(BaseModel):
+    """AI analysis configuration."""
+    
+    enabled: bool = Field(default=False, description="Enable AI-powered analysis")
+    provider: Literal["openai", "anthropic"] = Field(default="openai", description="AI provider to use")
+    api_key: str = Field(default="", description="API key for AI provider (can use env vars)")
+    model: str = Field(default="", description="Model to use (defaults based on provider)")
+
+
 class ModuleConfig(BaseModel):
     """Configuration for auxiliary modules."""
     
     allowed_modules: list[str] = Field(default_factory=list, description="List of allowed Metasploit auxiliary modules")
     msf_config: MsfConfig = Field(default_factory=MsfConfig, description="Metasploit RPC configuration")
+    ai_config: AIConfig = Field(default_factory=AIConfig, description="AI analysis configuration")
     timeout: int = Field(default=300, description="Module execution timeout in seconds")
     
     @field_validator("allowed_modules")
