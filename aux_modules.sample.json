@@ -1,0 +1,18 @@
+{
+  "note": "Example configuration file for msf-aux-auditor",
+  "allowed_modules": [
+    "auxiliary/scanner/portscan/tcp",
+    "auxiliary/scanner/http/http_version",
+    "auxiliary/scanner/ssh/ssh_version",
+    "auxiliary/scanner/ftp/ftp_version",
+    "auxiliary/scanner/smb/smb_version"
+  ],
+  "msf_config": {
+    "host": "127.0.0.1",
+    "port": 55553,
+    "username": "msf",
+    "password": "your_password_here",
+    "ssl": false
+  },
+  "timeout": 300
+}
